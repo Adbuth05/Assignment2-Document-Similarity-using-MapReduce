@@ -1,0 +1,3 @@
+Document1 this is a sample document
+Document2 another document with some words
+Document3 more text to test similarity
