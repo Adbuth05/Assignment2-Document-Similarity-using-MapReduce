@@ -71,22 +71,18 @@ DocumentID <document text>
 - The text is tokenized into words.
 - The Mapper emits (word, documentID) pairs.
 
-3.Shuffle and Sort Phase
+3. Shuffle and Sort Phase
 
 - Hadoop automatically groups all the values (document IDs) that share the same word.
-
 - This means every word is now associated with the list of documents where it appears.
 
 4. Reducer Phase
 
 - For each word, the reducer takes the list of documents.
-
 - It generates all possible pairs of documents that share that word.
-
 - The reducer accumulates counts of common words and calculates the Jaccard similarity:
 
 J(A, B) = |A ∩ B| / |A ∪ B|
-
 - The output is written as (DocumentA, DocumentB) → similarity score.
 
 5. Final Output
