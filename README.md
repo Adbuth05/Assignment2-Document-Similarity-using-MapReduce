@@ -1,8 +1,8 @@
 # Assignment 2: Document Similarity using MapReduce
 
-**Name:*Adbuth Kumar Kasturi**
+**Name**:**Adbuth Kumar Kasturi**
 
-**Student ID:*801424745**
+**Student ID**:**801424745**
 
 ## Approach and Implementation
 
@@ -50,7 +50,7 @@ This design ensures that all documents containing the same word are grouped toge
 - Jaccard similarity formula:
 
 *J(A, B) = |A ∩ B| / |A ∪ B|*
-where |A ∩ B| is the number of shared words, and |A ∪ B| is the total unique words.
+- where |A ∩ B| is the number of shared words, and |A ∪ B| is the total unique words.
 
 How this helps in solving the problem:
 By systematically comparing documents word by word, the reducer produces the final similarity scores between all document pairs. These scores can be used to identify how close documents are in terms of content.
