@@ -12,17 +12,16 @@ The Mapper takes each line of the input dataset, which is in the form:
 ```bash
 DocumentID <document text>
 ```
+-Point one Input Key-Value Pair:
+    -Subpoint Key: Byte offset of the line in the input file (ignored in our logic).
+    -Subpoint Value: The entire line of text (document ID + content).
 
-Input Key-Value Pair:
-    1. Key: Byte offset of the line in the input file (ignored in our logic).
-    2. Value: The entire line of text (document ID + content).
+-Point two Processing Logic:
+    -Subpoint The line is split into two parts: the Document ID and the document text.
+    -Subpoint The document text is tokenized into individual words.
+    -Subpoint For each word, the Mapper emits a key-value pair (word, DocumentID).
 
-Processing Logic:
-    1. The line is split into two parts: the Document ID and the document text.
-    2. The document text is tokenized into individual words.
-    3. For each word, the Mapper emits a key-value pair (word, DocumentID).
-
-Output Key-Value Pair:
+-Point One Output Key-Value Pair:
 
 ``` bash
 (word, documentID)
@@ -32,22 +31,23 @@ Role in Overall Problem:
 This design ensures that all documents containing the same word are grouped together in the Reducer phase, which allows us to build document pairs and later compute their Jaccard similarity.
 
 ### Reducer Design
-Input Key-Value Pair:
-    1.Key: A single word.
-    2.Value: A list of document IDs in which that word appears.
+-Point one Input Key-Value Pair:
+    -SubpointKey: A single word.
+    -SubpointValue: A list of document IDs in which that word appears.
     
-Logic / Processing Steps:
-    1.The reducer takes a word and the list of document IDs containing that word.
-    2.It generates all possible pairs of documents from that list.
-    3.Example: if the word “Hadoop” appears in Document1, Document2, and Document3, then the reducer forms pairs: (Document1, Document2), (Document1, Document3), (Document2, Document3).
-    4.For each pair, it increments a counter that represents how many words those two documents have in common (this builds the intersection count).
-    5.Separately, the reducer also tracks the union size for each document pair, which is the total number of distinct words across both documents.
-    6.After processing all words, it calculates the Jaccard similarity for each document pair.  
-Output Key-Value Pir:
+-Point two Logic / Processing Steps:
+    -SubpointThe reducer takes a word and the list of document IDs containing that word.
+    -SubpointIt generates all possible pairs of documents from that list.
+    -SubpointExample: if the word “Hadoop” appears in Document1, Document2, and Document3, then the reducer forms pairs: (Document1, Document2), (Document1, Document3), (Document2, Document3).
+    -SubpointFor each pair, it increments a counter that represents how many words those two documents have in common (this builds the intersection count).
+    -SubpointSeparately, the reducer also tracks the union size for each document pair, which is the total number of distinct words across both documents.
+    -SubpointAfter processing all words, it calculates the Jaccard similarity for each document pair.  
+
+-Point three Output Key-Value Pir:
 ```bash
 (DocumentA, DocumentB) -> Jaccard similarity score
 ```
-Jaccard similarity formula:
+-Point four Jaccard similarity formula:
 
 *J(A, B) = |A ∩ B| / |A ∪ B|*
 where |A ∩ B| is the number of shared words, and |A ∪ B| is the total unique words.
@@ -63,38 +63,35 @@ By systematically comparing documents word by word, the reducer produces the fin
 ``` bash
 DocumentID <document text>
 ```
-These files are stored in HDFS and read by the MapReduce framework line by line.
+-Point two These files are stored in HDFS and read by the MapReduce framework line by line.
 
 2. Mapper Phase
 
-Each line is split into a document ID and its text.
-The text is tokenized into words.
-The Mapper emits (word, documentID) pairs.
+-Point one Each line is split into a document ID and its text.
+-Point two The text is tokenized into words.
+-Point three The Mapper emits (word, documentID) pairs.
 
 3.Shuffle and Sort Phase
 
-Hadoop automatically groups all the values (document IDs) that share the same word.
+-Point one Hadoop automatically groups all the values (document IDs) that share the same word.
 
-This means every word is now associated with the list of documents where it appears.
+-Point two This means every word is now associated with the list of documents where it appears.
 
-Reducer Phase
+4. Reducer Phase
 
-For each word, the reducer takes the list of documents.
+-Point one For each word, the reducer takes the list of documents.
 
-It generates all possible pairs of documents that share that word.
+-Point two It generates all possible pairs of documents that share that word.
 
-The reducer accumulates counts of common words and calculates the Jaccard similarity:
+-Point three The reducer accumulates counts of common words and calculates the Jaccard similarity:
 
 J(A, B) = |A ∩ B| / |A ∪ B|
 
+-Point four The output is written as (DocumentA, DocumentB) → similarity score.
 
-The output is written as (DocumentA, DocumentB) → similarity score.
-
-Final Output
-
-The results are stored in the output directory of HDFS.
-
-They can be viewed with hadoop fs -cat /output/* or copied back to the local system for analysis.
+5. Final Output
+-Point One The results are stored in the output directory of HDFS.
+-Point twoThey can be viewed with hadoop fs -cat /output/* or copied back to the local system for analysis.
 ---
 
 ## Setup and Execution
@@ -109,20 +106,20 @@ Run the following command to start the Hadoop cluster:
 docker compose up -d
 ```
 
-### 2. **Build the Code**
+### 2. **Build JAR**
 
 Build the code using Maven:
 
 ```bash
-mvn clean package
+mvn clean install
 ```
 
-### 4. **Copy JAR to Docker Container**
+### 4. **Copy JAR to Hadoop Container**
 
 Copy the JAR file to the Hadoop ResourceManager container:
 
 ```bash
-docker cp target/WordCountUsingHadoop-0.0.1-SNAPSHOT.jar resourcemanager:/opt/hadoop-3.2.1/share/hadoop/mapreduce/
+docker cp target/DocumentSimilarity-0.0.1-SNAPSHOT.jar resourcemanager:/opt/hadoop-3.2.1/share/hadoop/mapreduce/
 ```
 
 ### 5. **Move Dataset to Docker Container**
@@ -130,7 +127,7 @@ docker cp target/WordCountUsingHadoop-0.0.1-SNAPSHOT.jar resourcemanager:/opt/ha
 Copy the dataset to the Hadoop ResourceManager container:
 
 ```bash
-docker cp shared-folder/input/data/input.txt resourcemanager:/opt/hadoop-3.2.1/share/hadoop/mapreduce/
+docker cp shared_folder/input_files/ resourcemanager:/opt/hadoop-3.2.1/share/hadoop/mapreduce/
 ```
 
 ### 6. **Connect to Docker Container**
@@ -139,6 +136,7 @@ Access the Hadoop ResourceManager container:
 
 ```bash
 docker exec -it resourcemanager /bin/bash
+cd /opt/hadoop-3.2.1/share/hadoop/mapreduce/
 ```
 
 Navigate to the Hadoop directory:
@@ -147,12 +145,10 @@ Navigate to the Hadoop directory:
 cd /opt/hadoop-3.2.1/share/hadoop/mapreduce/
 ```
 
-### 7. **Set Up HDFS**
-
-Create a folder in HDFS for the input dataset:
+### 7. **Upload data to HDFS**
 
 ```bash
-hadoop fs -mkdir -p /input/data
+hadoop fs -mkdir -p /input/dataset
 ```
 
 Copy the input dataset to the HDFS folder:
@@ -166,7 +162,7 @@ hadoop fs -put ./input.txt /input/data
 Run your MapReduce job using the following command: Here I got an error saying output already exists so I changed it to output1 instead as destination folder
 
 ```bash
-hadoop jar /opt/hadoop-3.2.1/share/hadoop/mapreduce/WordCountUsingHadoop-0.0.1-SNAPSHOT.jar com.example.controller.Controller /input/data/input.txt /output1
+hadoop jar DocumentSimilarity-0.0.1-SNAPSHOT.jar com.example.controller.DocumentSimilarityDriver /input/dataset/datasets /output
 ```
 
 ### 9. **View the Output**
@@ -174,7 +170,7 @@ hadoop jar /opt/hadoop-3.2.1/share/hadoop/mapreduce/WordCountUsingHadoop-0.0.1-S
 To view the output of your MapReduce job, use:
 
 ```bash
-hadoop fs -cat /output1/*
+hadoop fs -cat /output/*
 ```
 
 ### 10. **Copy Output from HDFS to Local OS**
@@ -183,7 +179,7 @@ To copy the output from HDFS to your local machine:
 
 1. Use the following command to copy from HDFS:
     ```bash
-    hdfs dfs -get /output1 /opt/hadoop-3.2.1/share/hadoop/mapreduce/
+    hdfs dfs -get /output /opt/hadoop-3.2.1/share/hadoop/mapreduce/
     ```
 
 2. use Docker to copy from the container to your local machine:
@@ -191,7 +187,7 @@ To copy the output from HDFS to your local machine:
    exit 
    ```
     ```bash
-    docker cp resourcemanager:/opt/hadoop-3.2.1/share/hadoop/mapreduce/output1/ shared-folder/output/
+   docker cp resourcemanager:/opt/hadoop-3.2.1/share/hadoop/mapreduce/output/ output/
     ```
 3. Commit and push to your repo so that we can able to see your output
 
@@ -199,8 +195,14 @@ To copy the output from HDFS to your local machine:
 ---
 
 ## Challenges and Solutions
+-Point one Challenge: Handling large datasets with many overlapping words.
+-Point two Solution: Optimized reducer logic to compute intersections efficiently.
 
-[Describe any challenges you faced during this assignment. This could be related to the algorithm design (e.g., how to generate pairs), implementation details (e.g., data structures, debugging in Hadoop), or environmental issues. Explain how you overcame these challenges.]
+-Point three Challenge: Setting up multi-node Hadoop with Docker.
+-Point four Solution: Used docker-compose.yml and hadoop.env to configure namenode, datanodes, resourcemanager, and historyserver.
+
+-Point five Challenge: Output overwriting when re-running jobs.
+-Point six Solution: Used unique output folder names for each run or deleted old output before execution.
 
 ---
 ## Sample Input
@@ -220,3 +222,8 @@ Document3 Sample text with different words
 "Document2, Document3 Similarity: 0.50"
 ```
 ## Obtained Output: (Place your obtained output here.)
+```bash
+(ds2.txt, ds1.txt) -> 0.03
+(ds3.txt, ds1.txt) -> 0.01
+(ds3.txt, ds2.txt) -> 0.29
+```
