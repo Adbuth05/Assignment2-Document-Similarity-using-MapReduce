@@ -21,7 +21,7 @@ DocumentID <document text>
     - Subpoint The document text is tokenized into individual words.
     - Subpoint For each word, the Mapper emits a key-value pair (word, DocumentID).
 
--Point One Output Key-Value Pair:
+- Point One Output Key-Value Pair:
 
 ``` bash
 (word, documentID)
